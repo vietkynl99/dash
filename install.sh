@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #repo addresses
-aasdkRepo="https://github.com/OpenDsh/aasdk"
-gstreamerRepo="https://github.com/GStreamer/qt-gstreamer"
-openautoRepo="https://github.com/openDsh/openauto"
 h264bitstreamRepo="https://github.com/aizvorski/h264bitstream"
+gstreamerRepo="https://github.com/GStreamer/qt-gstreamer"
+aasdkRepo="https://github.com/vietkynl99/aasdk"
+openautoRepo="https://github.com/vietkynl99/openauto"
 
 #Help text
 display_help() {
@@ -195,8 +195,9 @@ if [ $pulseaudio = false ]
     echo Grabbing pulseaudio deps
     sudo sed -i 's/#deb-src/deb-src/g' /etc/apt/sources.list
     sudo apt-get update -y
-    git clone git://anongit.freedesktop.org/pulseaudio/pulseaudio
     sudo apt-get install -y autopoint
+    cd ..
+    git clone git://anongit.freedesktop.org/pulseaudio/pulseaudio
     cd pulseaudio
     git checkout tags/v12.99.3
     echo Applying imtu patch
@@ -204,12 +205,12 @@ if [ $pulseaudio = false ]
     sed -i 's/*imtu = 48;/*imtu = 60;/g' src/modules/bluetooth/backend-ofono.c
     sudo apt-get build-dep -y pulseaudio
     ./bootstrap.sh
-    make -j4
+    make -j2
     sudo make install
     sudo ldconfig
     # copy configs and force an exit 0 just in case files are identical (we don't care but it will make pimod exit)
     sudo cp /usr/share/pulseaudio/alsa-mixer/profile-sets/* /usr/local/share/pulseaudio/alsa-mixer/profile-sets/
-    cd ..
+    cd ../..
 fi
 
 
@@ -244,14 +245,15 @@ if [ $bluez = false ]
   else
     echo Installing bluez
     sudo apt-get install -y libdbus-1-dev libudev-dev libical-dev libreadline-dev libjson-c-dev
+    cd ..
     wget www.kernel.org/pub/linux/bluetooth/bluez-5.63.tar.xz
     tar -xvf bluez-5.63.tar.xz bluez-5.63/
     rm bluez-5.63.tar.xz
     cd bluez-5.63
     ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-library --disable-manpages --enable-deprecated
-    make
+    make -j2
     sudo make install
-    cd ..
+    cd ../..
 fi
 
 ###############################  AASDK #########################
@@ -374,7 +376,7 @@ else
   fi
 
   #beginning make
-  make
+  make -j2
 
   if [[ $? -eq 0 ]]; then
     echo -e h264bitstream Make completed successfully '\n'
@@ -459,7 +461,7 @@ if [ $gstreamer = true ]; then
   fi
 
   echo Making Gstreamer
-  make -j4
+  make -j2
 
   if [[ $? -eq 0 ]]; then
     echo -e Gstreamer make ok'\n'
@@ -535,7 +537,7 @@ else
   fi
 
   echo Beginning openauto make
-  make
+  make -j2
   if [[ $? -eq 0 ]]; then
     echo -e Openauto make OK'\n'
   else
@@ -584,7 +586,7 @@ else
   fi
 
   echo Running Dash make
-  make
+  make -j2
   if [[ $? -eq 0 ]]; then
       echo -e Dash make ok, executable can be found ../bin/dash
       echo
